@@ -63,27 +63,26 @@ function getLocationApi(param) {
     .then(function (response) {
       if (response.ok) {
         response.json().then(function (data) {
-          getWeatherApi(data[0].lat, data[0].lon)
+          getWeatherApi(data[0].lat, data[0].lon, param)
         })
       }
   });
 };
 
 // create function to get weather data based on lat and lon
-function getWeatherApi(lat, lon) {
+function getWeatherApi(lat, lon, city) {
   console.log(lat, lon, "robin");
-  const requestUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=imperial&appid=${apiKey}`;
+  const requestUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=minutely,hourly&appid=${apiKey}`;
 
   fetch(requestUrl)
     .then(function (response) {
       if (response.ok) {
         response.json().then(function (data) {
-          console.log(data, 'hancock')
+          console.log(data, 'hancock');
+          renderCurrentWeather(data, city);
         })
       }
     });
-
-
 };
 
 // render list of search history  
@@ -110,12 +109,122 @@ function renderSearchedCitiesList() {
 function searchBarDivider() {
   // create elements
   const divider = $('<hr>');
-  
+
   // set attributest
   divider.attr("class", "my-3");
 
   // append child
   searchDiv.append(divider);
+}
+
+function renderCurrentWeather(data, city) {
+  // create elements
+  const cardDiv = $('<div>');
+  const cardBody = $('<div>');
+  const titleDiv = $('<div>');
+  const cardTitle = $('<h4>');
+  const temp = $('<p>');
+  const wind = $('<p>');
+  const humid = $('<p>');
+  const uv = $('<p>');
+  const iconDiv = $('<div>');
+  const icon = $('<img>');
+
+  // set attr
+  cardDiv.attr("class", "card border-primary mb-3");
+  cardBody.attr("class", "card-body")
+  cardTitle.attr("class", "card-title text-primary");
+  temp.attr("class", "card-text mt-3");
+  wind.attr("class", "card-text mt-3");
+  humid.attr("class", "card-text mt-3");
+  uv.attr("class", "card-text mt-3");
+  titleDiv.attr("class", "card-header d-flex flex-row align-items-end");
+
+  // create needed vars 
+  const myDate = (new Date(eval(data.current.dt*1000))).toLocaleString().split(",")[0];
+  const iconCode = data.current.weather[0].icon;
+  const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
+  const nextFiveDays = data.daily.slice(1, 6)
+
+  // pass data to elements
+  cardTitle.text(`${city} (${myDate})`);
+  temp.text(`Current temperature: ${data.current.temp}`);
+  wind.text(`Wind: ${data.current.wind_speed} mph`);
+  humid.text(`Humidity: ${data.current.humidity}%`);
+  uv.text(`UV index: ${data.current.uvi}`);
+
+  // set attr for icon
+  iconDiv.attr("id", "icon");
+  icon.attr("id", "wicon");
+  icon.attr("src", iconUrl);
+  icon.attr("alt", "Weather icon");
+
+  // append to DOM
+  iconDiv.append(icon);
+  titleDiv.append(cardTitle, iconDiv);
+  cardBody.append(temp, wind, humid, uv);
+  cardDiv.append(titleDiv, cardBody);
+  mainContet.append(cardDiv);
+
+  renderFiveDayForecastSection(nextFiveDays);
+}
+
+function renderFiveDayForecastSection(nextFiveDays) {
+  const mainSection = $('<div>');
+  const sectionTitle = $('<h4>');
+  const strongTag = $('<strong>');
+  const sectionContainer = $('<div>');
+
+  sectionContainer.attr("class", "row d-flex flex-row")
+  strongTag.text('5-Day Forecast:');
+  console.log(nextFiveDays, 'eminem')
+
+  mainSection.append(sectionTitle, sectionContainer);
+
+  nextFiveDays.map(day => {
+    const cardDiv = $('<div>');
+    const cardBody = $('<div>');
+    const titleDiv = $('<div>');
+    const cardTitle = $('<h4>');
+    const temp = $('<p>');
+    const wind = $('<p>');
+    const humid = $('<p>');
+    const iconDiv = $('<div>');
+    const icon = $('<img>');
+
+    const iconCode = day.weather[0].icon;
+    const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
+
+    iconDiv.attr("id", "icon");
+    icon.attr("id", "wicon");
+    icon.attr("src", iconUrl);
+    icon.attr("alt", "Weather icon");
+    
+    // set attr
+    cardDiv.attr("class", "card border-primary mb-3 col-lg-2 ml-3 mr-3 p-0");
+    cardBody.attr("class", "card-body")
+    cardTitle.attr("class", "card-title text-primary");
+    temp.attr("class", "card-text mt-3");
+    wind.attr("class", "card-text mt-3");
+    humid.attr("class", "card-text mt-3");
+    titleDiv.attr("class", "card-header d-flex flex-row align-items-end");
+
+    const myDate = (new Date(eval(day.dt*1000))).toLocaleString().split(",")[0];
+
+    cardTitle.text(`(${myDate})`);
+    temp.text(`Temp: ${day.temp.day}`);
+    wind.text(`Wind: ${day.wind_speed} mph`);
+    humid.text(`Humidity: ${day.humidity}%`);
+
+    iconDiv.append(icon);
+    titleDiv.append(cardTitle);
+    cardBody.append(iconDiv, temp, wind, humid);
+    cardDiv.append(titleDiv, cardBody);
+    sectionContainer.append(cardDiv)
+  })
+
+  sectionTitle.append(strongTag);
+  mainContet.append(mainSection);
 }
 
 // function to initialize js
