@@ -13,6 +13,10 @@ body {
   font-size: 3rem;
 }
 
+.weather-navbar {
+  background: linear-gradient(270deg, rgb(105, 159, 209) 0%, rgba(237, 245, 249, 1) 63%);
+}
+
 .saveBtn {
   border-left: 1px solid black;
   border-top-right-radius: 15px;

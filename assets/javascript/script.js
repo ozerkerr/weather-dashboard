@@ -36,6 +36,11 @@ function createSearchBar() {
     listItem.attr("class", "list-group-item list-group-item-action px-3 border-0 rounded-3 mb-2 list-group-item-info d-flex justify-content-center")
     // add text
     listItem.text($('#search-bar').val());
+
+    listItem.click(function() {
+      searchCity(listItem.text())
+    })
+
     // append to div element
     listGroup.prepend(listItem)
     $('#search-bar').val('');
@@ -52,6 +57,7 @@ function searchCity(city) {
 
   // save to local storage
   localStorage.setItem("cities", JSON.stringify(storedCities));
+  mainContet.empty();
   getLocationApi(city)
 };
 
@@ -71,14 +77,13 @@ function getLocationApi(param) {
 
 // create function to get weather data based on lat and lon
 function getWeatherApi(lat, lon, city) {
-  console.log(lat, lon, "robin");
   const requestUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=minutely,hourly&appid=${apiKey}`;
 
+  // use fetch to get data
   fetch(requestUrl)
     .then(function (response) {
       if (response.ok) {
         response.json().then(function (data) {
-          console.log(data, 'hancock');
           renderCurrentWeather(data, city);
         })
       }
@@ -97,6 +102,9 @@ function renderSearchedCitiesList() {
 
     listItem.attr("class", "list-group-item list-group-item-action px-3 border-0 rounded-3 mb-2 list-group-item-info d-flex justify-content-center")
     listItem.text(city);
+    listItem.click(function() {
+      searchCity(city)
+    })
 
     listGroup.append(listItem);
   })
@@ -129,6 +137,10 @@ function renderCurrentWeather(data, city) {
   const uv = $('<p>');
   const iconDiv = $('<div>');
   const icon = $('<img>');
+  const uvBadge = $('<a>');
+
+  const uvColor = data.current.uvi <= 3 ? "badge-success"
+  : data.current.uvi > 3 && data.current.uvi <= 7 ? "badge-warning" : "badge-danger";
 
   // set attr
   cardDiv.attr("class", "card border-primary mb-3");
@@ -137,7 +149,7 @@ function renderCurrentWeather(data, city) {
   temp.attr("class", "card-text mt-3");
   wind.attr("class", "card-text mt-3");
   humid.attr("class", "card-text mt-3");
-  uv.attr("class", "card-text mt-3");
+  uv.attr("class", `card-text mt-3`);
   titleDiv.attr("class", "card-header d-flex flex-row align-items-end");
 
   // create needed vars 
@@ -151,7 +163,11 @@ function renderCurrentWeather(data, city) {
   temp.text(`Current temperature: ${data.current.temp}`);
   wind.text(`Wind: ${data.current.wind_speed} mph`);
   humid.text(`Humidity: ${data.current.humidity}%`);
-  uv.text(`UV index: ${data.current.uvi}`);
+  uv.text(`UV index:`);
+
+  uvBadge.attr("class", `badge ${uvColor}`)
+  uvBadge.text(`${data.current.uvi}`)
+  uv.append(uvBadge)
 
   // set attr for icon
   iconDiv.attr("id", "icon");
@@ -169,19 +185,24 @@ function renderCurrentWeather(data, city) {
   renderFiveDayForecastSection(nextFiveDays);
 }
 
+// function that render next 5 day forecast
 function renderFiveDayForecastSection(nextFiveDays) {
+  // create elements
   const mainSection = $('<div>');
   const sectionTitle = $('<h4>');
   const strongTag = $('<strong>');
   const sectionContainer = $('<div>');
 
+  // set attr
   sectionContainer.attr("class", "row d-flex flex-row")
   strongTag.text('5-Day Forecast:');
-  console.log(nextFiveDays, 'eminem')
 
+  // append to parent element
   mainSection.append(sectionTitle, sectionContainer);
 
+  // map through passed data to create new cards for each one
   nextFiveDays.map(day => {
+    // create elements
     const cardDiv = $('<div>');
     const cardBody = $('<div>');
     const titleDiv = $('<div>');
@@ -192,9 +213,11 @@ function renderFiveDayForecastSection(nextFiveDays) {
     const iconDiv = $('<div>');
     const icon = $('<img>');
 
+    // create vars
     const iconCode = day.weather[0].icon;
     const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
 
+    // set attr
     iconDiv.attr("id", "icon");
     icon.attr("id", "wicon");
     icon.attr("src", iconUrl);
@@ -209,13 +232,16 @@ function renderFiveDayForecastSection(nextFiveDays) {
     humid.attr("class", "card-text mt-3");
     titleDiv.attr("class", "card-header d-flex flex-row align-items-end");
 
+    // get date
     const myDate = (new Date(eval(day.dt*1000))).toLocaleString().split(",")[0];
 
+    // pass data to dom
     cardTitle.text(`(${myDate})`);
     temp.text(`Temp: ${day.temp.day}`);
     wind.text(`Wind: ${day.wind_speed} mph`);
     humid.text(`Humidity: ${day.humidity}%`);
 
+  // append to parent element
     iconDiv.append(icon);
     titleDiv.append(cardTitle);
     cardBody.append(iconDiv, temp, wind, humid);
@@ -223,6 +249,7 @@ function renderFiveDayForecastSection(nextFiveDays) {
     sectionContainer.append(cardDiv)
   })
 
+  // append to dom
   sectionTitle.append(strongTag);
   mainContet.append(mainSection);
 }
@@ -232,7 +259,6 @@ function init() {
   createSearchBar();
   searchBarDivider();
   renderSearchedCitiesList();
-  console.log('qqq');
 }
 
 // calling initializer 
