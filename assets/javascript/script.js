@@ -64,7 +64,7 @@ function searchCity(city) {
 // create function to get lat and long based on city name
 function getLocationApi(param) {
   const city = param.replace(' ', '+');
-  const requestUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
+  const requestUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
   fetch(requestUrl)
     .then(function (response) {
       if (response.ok) {
@@ -155,7 +155,7 @@ function renderCurrentWeather(data, city) {
   // create needed vars 
   const myDate = (new Date(eval(data.current.dt*1000))).toLocaleString().split(",")[0];
   const iconCode = data.current.weather[0].icon;
-  const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
+  const iconUrl = `https://openweathermap.org/img/w/${iconCode}.png`;
   const nextFiveDays = data.daily.slice(1, 6)
 
   // pass data to elements
@@ -215,7 +215,7 @@ function renderFiveDayForecastSection(nextFiveDays) {
 
     // create vars
     const iconCode = day.weather[0].icon;
-    const iconUrl = `http://openweathermap.org/img/w/${iconCode}.png`;
+    const iconUrl = `https://openweathermap.org/img/w/${iconCode}.png`;
 
     // set attr
     iconDiv.attr("id", "icon");
